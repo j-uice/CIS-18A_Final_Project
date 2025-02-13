@@ -1,0 +1,363 @@
+CLASS JuicesApocGoods IMPLEMENTS ActionListener
+
+    // Declare main frame and background panel
+    DECLARE JFrame mainMenuFrm
+    DECLARE JPanel backgroundPnl
+
+    CONSTRUCTOR JuicesApocGoods()
+        CREATE new JFrame "Juice's Apocalyptic Goods"
+        SET frame to fullscreen
+        SET layout to BorderLayout
+        SET close operation to EXIT
+
+        // Create a background panel
+        CREATE backgroundPnl
+        SET background color to BLACK
+        SET layout to BorderLayout
+
+        // Create menu panel for the title
+        CREATE menuPanel
+        SET border padding
+        SET background color to BLACK
+
+        // Create title label
+        CREATE JLabel "WELCOME TO JUICE'S APOCALYPTIC GOODS ONLINE DELIVERY!"
+        SET text color to GREEN
+        SET font to Monospaced, BOLD, size 40
+        ADD label to menuPanel
+
+        // Add menu panel to background
+        ADD menuPanel to backgroundPnl at NORTH
+        SET backgroundPnl as content pane of frame
+
+        // Create "Order Goods" button
+        CREATE JButton "ORDER GOODS"
+        SET background color to GREEN
+        SET text color to BLACK
+        SET font to Monospaced, BOLD, size 40
+        ADD action listener to button
+
+        // Create "Hire Services" button
+        CREATE JButton "HIRE SERVICES"
+        SET background color to GREEN
+        SET text color to BLACK
+        SET font to Monospaced, BOLD, size 35
+        ADD action listener to button
+
+        // Create panel to organize buttons
+        CREATE buttonsPnl with FlowLayout CENTER
+        SET background color to BLACK
+        ADD buttons to buttonsPnl
+
+        // Add buttons panel to frame at SOUTH
+        ADD buttonsPnl to mainMenuFrm
+
+        // Display the frame
+        SET frame visible
+
+    METHOD actionPerformed(ActionEvent ae)
+        IF button pressed is "ORDER GOODS"
+            CLOSE mainMenuFrm
+            OPEN new OrderFrame()
+        ENDIF
+
+        IF button pressed is "HIRE SERVICES"
+            SHOW message dialog "Hiring Services will be coming soon."
+        ENDIF
+
+    METHOD main(String[] args)
+        EXECUTE GUI creation on event dispatch thread using SwingUtilities
+        CALL JuicesApocGoods constructor
+
+END CLASS
+
+
+
+
+
+CLASS OrderFrame IMPLEMENTS ActionListener
+
+    DECLARE JFrame orderFrm
+
+    CONSTRUCTOR OrderFrame()
+        CREATE new JFrame "Juice's Apocalyptic Goods"
+        SET frame to fullscreen
+        SET close operation to EXIT
+        SET layout to BorderLayout
+
+        // Create background panel
+        CREATE orderBackground panel with BorderLayout
+        SET background color to BLACK
+        SET orderBackground as content pane
+
+        // Create title panel
+        CREATE orderPanel with BorderLayout
+        SET border padding
+        SET background color to BLACK
+
+        // Create title label
+        CREATE JLabel "SELECT YOUR ITEMS!" CENTER aligned
+        SET text color to GREEN
+        SET font to Monospaced, BOLD, size 40
+        ADD title label to orderPanel CENTER
+        ADD orderPanel to orderBackground NORTH
+
+        // Create panel for displaying product list
+        CREATE goodsPanel with GridLayout (rows = Crt.product.length, columns = 1)
+        SET background color to BLACK
+        ADD goodsPanel to orderBackground CENTER
+
+        INITIALIZE Crt.productLabels array to match Crt.product.length
+
+        // Loop through each product and create UI components
+        FOR i FROM 0 TO Crt.product.length - 1
+            CREATE productPanel with FlowLayout
+            SET background color to BLACK
+
+            // Create label for product
+            CREATE JLabel with text " {quantity} {product} (${price}) "
+            SET text color to GREEN
+            SET font to Monospaced, BOLD, size 40
+            STORE in Crt.productLabels[i]
+
+            // Create "+" button
+            CREATE JButton "+"
+            SET background color to GREEN
+            SET text color to BLACK
+            SET font to Monospaced, BOLD, size 40
+            SET action command "add_{i}"
+            ADD action listener
+
+            // Create "-" button
+            CREATE JButton "-"
+            SET background color to GREEN
+            SET text color to BLACK
+            SET font to Monospaced, BOLD, size 40
+            SET action command "remove_{i}"
+            ADD action listener
+
+            ADD product label, remove button, and add button to productPanel
+            ADD productPanel to goodsPanel
+        ENDFOR
+
+        // Create panel for menu buttons
+        CREATE menuBttnPnl with FlowLayout
+        SET background color to BLACK
+        ADD menuBttnPnl to orderBackground SOUTH
+
+        // Create "GO BACK" button
+        CREATE JButton "GO BACK"
+        SET background color to GREEN
+        SET text color to BLACK
+        SET font to Monospaced, BOLD, size 40
+        SET action command "back"
+        ADD action listener
+        ADD to menuBttnPnl
+
+        // Create "PLACE IN CART" button
+        CREATE JButton "PLACE IN CART"
+        SET background color to GREEN
+        SET text color to BLACK
+        SET font to Monospaced, BOLD, size 40
+        SET action command "placeOrder"
+        ADD action listener
+        ADD to menuBttnPnl
+
+        // Display the frame
+        SET orderFrm visible
+
+    METHOD actionPerformed(ActionEvent ae)
+        SET command = ae.getActionCommand()
+
+        IF command IS "placeOrder"
+            CLOSE orderFrm
+            OPEN UserInfo window
+        ENDIF
+
+        IF command IS "back"
+            CLOSE orderFrm
+            OPEN JuicesApocGoods window
+        ENDIF
+
+        IF command STARTS WITH "add_"
+            PARSE product index from command
+            IF product quantity < 999
+                INCREMENT product quantity
+            ENDIF
+            CALL updateProductLabel(index)
+        ENDIF
+
+        IF command STARTS WITH "remove_"
+            PARSE product index from command
+            IF product quantity > 0
+                DECREMENT product quantity
+            ENDIF
+            CALL updateProductLabel(index)
+        ENDIF
+
+    METHOD updateProductLabel(indexProduct)
+        UPDATE Crt.productLabels[indexProduct] TEXT TO DISPLAY UPDATED QUANTITY
+
+END CLASS
+
+
+
+
+CLASS OrderSummary IMPLEMENTS ActionListener
+
+    // Declare JFrame for the order summary window
+    DECLARE JFrame orderSumFrm
+    
+    // Declare JPanel for displaying user information and product list
+    DECLARE JPanel userNGoodsPnl
+
+    CONSTRUCTOR OrderSummary()
+        // Create the JFrame for the order summary
+        CREATE new JFrame "Juice's Apocalyptic Goods"
+        SET frame to fullscreen
+        SET close operation to EXIT
+        SET layout to BorderLayout
+
+        // Create background panel
+        CREATE orderSumBckgrnd with BorderLayout
+        SET background color to BLACK
+        SET foreground color to GREEN
+        SET font to Monospaced, BOLD, size 40
+        SET orderSumBckgrnd as content pane of frame
+
+        // Create title panel
+        CREATE titlePnl with BorderLayout
+        SET border padding
+        SET background color to BLACK
+
+        // Create title label "* ORDER SUMMARY *"
+        CREATE JLabel with text "* ORDER SUMMARY *"
+        SET text color to GREEN
+        SET font to Monospaced, BOLD, size 40
+        ADD label to titlePnl CENTER
+        ADD titlePnl to orderSumBckgrnd NORTH
+
+        // Create user information panel
+        CREATE userNGoodsPnl with GridLayout (10 rows, 1 column)
+        SET background color to BLACK
+        ADD userNGoodsPnl to orderSumBckgrnd CENTER
+
+        // Add user information labels (First Name, Last Name, etc.) to the panel
+        ADD "First Name: " + UserInfo.FrstN to userNGoodsPnl
+        ADD "Last Name: " + UserInfo.LstN to userNGoodsPnl
+        ADD "Email: " + UserInfo.Email to userNGoodsPnl
+        ADD "Delivery Date: " + UserInfo.Date to userNGoodsPnl
+        ADD "Delivery Time: " + UserInfo.Time to userNGoodsPnl
+
+        // Initialize product labels for each product in the cart
+        INITIALIZE Crt.productLabels array to match Crt.product.length
+
+        // Loop through each product and display product quantity, name, and price
+        FOR i FROM 0 TO Crt.product.length - 1
+            CREATE productPanel with FlowLayout
+            SET background color to BLACK
+
+            // Create label showing product details (quantity, name, price)
+            CREATE JLabel with text " {quantity} {product} (${price}) "
+            SET text color to GREEN
+            SET font to Monospaced, BOLD, size 40
+            STORE label in Crt.productLabels[i]
+
+            ADD product label to productPanel
+            ADD productPanel to userNGoodsPnl
+        ENDFOR
+
+        // Create panel for menu buttons
+        CREATE menuBttnPnl with FlowLayout
+        SET background color to BLACK
+        ADD menuBttnPnl to orderSumBckgrnd SOUTH
+
+        // Create "BACK TO U-INFO" button
+        CREATE JButton "BACK TO U-INFO"
+        SET background color to GREEN
+        SET text color to BLACK
+        SET font to Monospaced, BOLD, size 40
+        SET action command "u_info"
+        ADD action listener
+        ADD to menuBttnPnl
+
+        // Create "BACK TO GOODS" button
+        CREATE JButton "BACK TO GOODS"
+        SET background color to GREEN
+        SET text color to BLACK
+        SET font to Monospaced, BOLD, size 40
+        SET action command "goods"
+        ADD action listener
+        ADD to menuBttnPnl
+
+        // Create "PRINT RECEIPT" button
+        CREATE JButton "PRINT RECEIPT"
+        SET background color to GREEN
+        SET text color to BLACK
+        SET font to Monospaced, BOLD, size 40
+        SET action command "print"
+        ADD action listener
+        ADD to menuBttnPnl
+
+        // Display the frame
+        SET orderSumFrm visible
+
+    METHOD createStyledLabel(text)
+        CREATE userInfoPnl with FlowLayout
+        CREATE userInfoLbl with input text
+        SET text color to GREEN
+        SET font to Monospaced, BOLD, size 40
+        ADD userInfoLbl to userInfoPnl
+        RETURN userInfoPnl
+
+    METHOD actionPerformed(ActionEvent ae)
+        SET command = ae.getActionCommand()
+
+        IF command IS "u_info"
+            CLOSE orderSumFrm
+            OPEN new UserInfo window
+        ENDIF
+
+        IF command IS "goods"
+            CLOSE orderSumFrm
+            OPEN new OrderFrame window
+        ENDIF
+
+        IF command IS "print"
+            CALL saveOrderSummaryToFile()
+        ENDIF
+
+    METHOD saveOrderSummaryToFile()
+        TRY
+            CREATE FileWriter for "ReceiptOrder.txt"
+            // Loop through userNGoodsPnl components and write text to file
+            FOR each component in userNGoodsPnl
+                IF component IS JLabel
+                    WRITE text of JLabel to the file
+                ENDIF
+            ENDFOR
+            CLOSE FileWriter
+            SHOW success message dialog "A text file has been saved!"
+        CATCH IOException
+            SHOW error message dialog "Error saving file!"
+            PRINT stack trace of exception
+        ENDTRY
+
+END CLASS
+
+
+
+
+CLASS Crt
+
+    // Declare static variables for product data
+    DECLARE int[] quantities = {0, 0, 0, 0, 0} // Stores quantities for all products
+    DECLARE JLabel[] productLabels // Stores labels for dynamic updates
+
+    // Declare static arrays for product information
+    DECLARE String[] product = { "FLASHLIGHT", "THERMAL WATER BOTTLE", "THERMAL FOOD CONTAINER", "NON-PERISHABLE PACKAGE", "MED-KIT" }
+    DECLARE double[] prices = { 6.79, 11.45, 20.00, 28.99, 24.99 }
+
+END CLASS
+
+
